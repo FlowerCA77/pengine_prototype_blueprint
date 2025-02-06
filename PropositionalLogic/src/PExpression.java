@@ -3,6 +3,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings("CommentedOutCode")
 public class PExpression {
     private final List<PSymbol> pSymbolList;
 
@@ -57,6 +58,18 @@ public class PExpression {
 
         return pExpression;
     }
+//    public PExpression setSymbolToNewExpression(int symbolType, PExpression pExpression) {
+//        assert symbolType >= 0;
+//        List<PSymbol> pSymbolList = new LinkedList<>();
+//        for (PSymbol pSymbol : this.pSymbolList) {
+//            if (pSymbol.type() == symbolType) {
+//                pSymbolList.addAll(pExpression.pSymbolList);
+//            } else {
+//                pSymbolList.add(pSymbol);
+//            }
+//        }
+//        return new PExpression(pSymbolList);
+//    }
 
     /**
      * <h1>Make proposition expression (s→t)</h1>
@@ -226,6 +239,25 @@ public class PExpression {
 
             return pExpression;
         }
+    }
+
+    @SuppressWarnings("unused")
+    public int getSymbolTypeMax() {
+        int type = 0;
+        for (PSymbol symbol : pSymbolList) {
+            type = Math.max(type, symbol.type());
+        }
+        return type;
+    }
+
+    /**
+     * @deprecated The truth value of the expression after the processing mode replacement is too complex because we have
+     * not implemented a truth value-based computing system. We plan to rewrite the system based on reasoning rather than
+     * truth value assignment, so this function is deprecated.
+     */
+    @SuppressWarnings("unused")
+    public PExpression setSymbolToNewExpression(int symbolType, PExpression pExpression) {
+        return PExpression.var_of(PSymbol.of(0));
     }
 
     public Boolean getValue() {
