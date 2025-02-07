@@ -1,27 +1,4 @@
 public class TruthAssigner {
-    @SuppressWarnings("unused")
-    public void assign(Boolean[] truthFunction) {
-        for (int i = 0; i < truthFunction.length; i++) {
-            PSymbol.of(i).setValue(truthFunction[i]);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public void assign(boolean[] truthFunction, int[] hash) {
-        for (int i = 0; i < truthFunction.length; i++) {
-            PSymbol.of(hash[i]).setValue(truthFunction[i]);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public void assign(boolean[] truthFunction, int low, int high) {
-        low = Math.max(low, 0);
-        high = Math.max(high, 0);
-        for (int i = low; i <= high; i++) {
-            PSymbol.of(i).setValue(truthFunction[i]);
-        }
-    }
-
     public Boolean[][] truthTraverser(int n) {
         if (n < 1) {
             System.err.println("Invalid truth number, to generate 1 " + "truth-table");

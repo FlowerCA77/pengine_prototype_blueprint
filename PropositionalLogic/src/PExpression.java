@@ -1,16 +1,29 @@
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.LinkedList;
 
-@SuppressWarnings("CommentedOutCode")
 public class PExpression {
     private final List<PSymbol> pSymbolList;
+    private final Set<PSymbol> pVariableSet;
 
     private Boolean value;
 
+    /* do not evaluate the f**king truth value, because it will use the lexer and parser to analyze the prop. exp.      */
+    /* --WARNING-- :  Propositional symbol in pSymbolList will lose their truth value !!!                               */
     private PExpression(List<PSymbol> pSymbolList) {
+        if (!pSymbolList.isEmpty()) {
+            System.err.println("--WARNING-- :  Propositional symbol in pSymbolList will lose their truth value !!!");
+        }
         this.pSymbolList = pSymbolList;
+        this.pVariableSet = new HashSet<>();
+        for (PSymbol pSymbol : this.pSymbolList) {
+            pSymbol.setValue(null);
+            if (pSymbol.getType() >= 0) {
+                pVariableSet.add(pSymbol);
+            }
+        }
     }
 
     /**
@@ -24,13 +37,22 @@ public class PExpression {
      * @return expression A<sub>n</sub>
      */
     public static PExpression var_of(PSymbol pSymbol) {
-        if (pSymbol.type() < 0) {
+        if (pSymbol.getType() < 0) {
             throw new IllegalArgumentException("not a propositional variable");
         }
         PExpression pExpression = new PExpression(new LinkedList<>());
         pExpression.pSymbolList.add(pSymbol);
+        pExpression.pVariableSet.add(pSymbol);
         pExpression.value = pSymbol.getValue();
         return pExpression;
+    }
+
+    @SuppressWarnings("unused")
+    public static PExpression var_of(int type) {
+        if (type < 0) {
+            throw new IllegalArgumentException("not a propositional variable");
+        }
+        return var_of(PSymbol.of(type));
     }
 
     /**
@@ -43,10 +65,13 @@ public class PExpression {
      */
     public static PExpression not_of(PExpression s) {
         PExpression pExpression = new PExpression(new LinkedList<>());
-        pExpression.pSymbolList.add(PSymbol.of(-1));
+        /* Logical-not has the highest operation priority and therefore does not need parentheses */
+        // pExpression.pSymbolList.add(PSymbol.of(-1));
         pExpression.pSymbolList.add(PSymbol.of(-3));
         pExpression.pSymbolList.addAll(s.pSymbolList);
-        pExpression.pSymbolList.add(PSymbol.of(-2));
+        // pExpression.pSymbolList.add(PSymbol.of(-2));
+
+        pExpression.pVariableSet.addAll(s.pVariableSet);
 
         if (Boolean.FALSE.equals(s.getValue())) {
             pExpression.value = Boolean.TRUE;
@@ -58,21 +83,9 @@ public class PExpression {
 
         return pExpression;
     }
-//    public PExpression setSymbolToNewExpression(int symbolType, PExpression pExpression) {
-//        assert symbolType >= 0;
-//        List<PSymbol> pSymbolList = new LinkedList<>();
-//        for (PSymbol pSymbol : this.pSymbolList) {
-//            if (pSymbol.type() == symbolType) {
-//                pSymbolList.addAll(pExpression.pSymbolList);
-//            } else {
-//                pSymbolList.add(pSymbol);
-//            }
-//        }
-//        return new PExpression(pSymbolList);
-//    }
 
     /**
-     * <h1>Make proposition expression (s→t)</h1>
+     * <h1>Make proposition expression (s → t)</h1>
      * <p>
      * Connection two expressions by causality.
      *
@@ -88,27 +101,28 @@ public class PExpression {
         pExpression.pSymbolList.addAll(t.pSymbolList);
         pExpression.pSymbolList.add(PSymbol.of(-2));
 
-        if (Objects.isNull(s.getValue()) || Objects.isNull(t.getValue())) {
-            pExpression.value = null;
+        pExpression.pVariableSet.addAll(s.pVariableSet);
+        pExpression.pVariableSet.addAll(t.pVariableSet);
+
+        if (Boolean.TRUE.equals(s.getValue()) && Boolean.TRUE.equals(t.getValue())) {
+            pExpression.value = Boolean.TRUE;
+        } else if (Boolean.FALSE.equals(s.getValue()) && Boolean.TRUE.equals(t.getValue())) {
+            pExpression.value = Boolean.TRUE;
+        } else if (Boolean.FALSE.equals(s.getValue()) && Boolean.FALSE.equals(t.getValue())) {
+            pExpression.value = Boolean.TRUE;
+        } else if (Boolean.TRUE.equals(s.getValue()) && Boolean.FALSE.equals(t.getValue())) {
+            pExpression.value = Boolean.FALSE;
         } else {
-            if (Boolean.TRUE.equals(s.getValue()) && Boolean.TRUE.equals(t.getValue())) {
-                pExpression.value = Boolean.TRUE;
-            } else if (Boolean.FALSE.equals(s.getValue()) && Boolean.TRUE.equals(t.getValue())) {
-                pExpression.value = Boolean.TRUE;
-            } else if (Boolean.FALSE.equals(s.getValue()) && Boolean.FALSE.equals(t.getValue())) {
-                pExpression.value = Boolean.TRUE;
-            } else if (Boolean.TRUE.equals(s.getValue()) && Boolean.FALSE.equals(t.getValue())) {
-                pExpression.value = Boolean.FALSE;
-            }
+            pExpression.value = null;
         }
 
         return pExpression;
     }
 
     /**
-     * <h1>Make proposition expression (φ∧ψ)</h1>
+     * <h1>Make proposition expression (φ ∧ ψ)</h1>
      * <p>
-     * Make proposition expression (φ∧ψ) which is the logical-and of φ, ψ
+     * Make proposition expression (φ ∧ ψ) which is the logical-and of φ, ψ
      * <p>
      * Associativity : (φ<sub>1</sub>∧φ<sub>2</sub>∧...∧φ<sub>n</sub>) is
      * well-defined and bracket-position-independent
@@ -125,6 +139,9 @@ public class PExpression {
         pExpression.pSymbolList.addAll(psi.pSymbolList);
         pExpression.pSymbolList.add(PSymbol.of(-2));
 
+        pExpression.pVariableSet.addAll(phi.pVariableSet);
+        pExpression.pVariableSet.addAll(psi.pVariableSet);
+
         pExpression.value = not_of(contain_of(phi, not_of(psi))).getValue();
 
         return pExpression;
@@ -140,6 +157,7 @@ public class PExpression {
             pExpression.pSymbolList.add(PSymbol.of(-1));
             for (PExpression phi : phis) {
                 pExpression.pSymbolList.addAll(phi.pSymbolList);
+                pExpression.pVariableSet.addAll(phi.pVariableSet);
                 pExpression.pSymbolList.add(PSymbol.of(-6));
             }
             pExpression.pSymbolList.removeLast();
@@ -152,9 +170,9 @@ public class PExpression {
     }
 
     /**
-     * <h1>Make proposition expression (φ∨ψ)</h1>
+     * <h1>Make proposition expression (φ ∨ ψ)</h1>
      * <p>
-     * Make proposition expression (φ∨ψ) which is the logical-or of φ, ψ
+     * Make proposition expression (φ ∨ ψ) which is the logical-or of φ, ψ
      * <p>
      * Associativity : (φ<sub>1</sub>∨φ<sub>2</sub>∨...∨φ<sub>n</sub>) is
      * well-defined and bracket-position-independent
@@ -171,6 +189,9 @@ public class PExpression {
         pExpression.pSymbolList.addAll(psi.pSymbolList);
         pExpression.pSymbolList.add(PSymbol.of(-2));
 
+        pExpression.pVariableSet.addAll(phi.pVariableSet);
+        pExpression.pVariableSet.addAll(psi.pVariableSet);
+
         pExpression.value = contain_of(not_of(phi), psi).getValue();
 
         return pExpression;
@@ -186,6 +207,7 @@ public class PExpression {
             pExpression.pSymbolList.add(PSymbol.of(-1));
             for (PExpression phi : phis) {
                 pExpression.pSymbolList.addAll(phi.pSymbolList);
+                pExpression.pVariableSet.addAll(phi.pVariableSet);
                 pExpression.pSymbolList.add(PSymbol.of(-7));
             }
             pExpression.pSymbolList.removeLast();
@@ -198,10 +220,13 @@ public class PExpression {
     }
 
     /**
-     * <h1>Make proposition expression (s↔t)</h1>
+     * <h1>Make proposition expression (s ↔ t)</h1>
      * <p>
      * Make proposition expression which means s and t is co-implicative
      * (logical-equivalent).
+     * <p>
+     * Associativity : (φ<sub>1</sub>↔φ<sub>2</sub>↔...↔φ<sub>n</sub>) is
+     * well-defined and bracket-position-independent
      *
      * @param s the first component
      * @param t the second component
@@ -214,6 +239,9 @@ public class PExpression {
         pExpression.pSymbolList.add(PSymbol.of(-5));
         pExpression.pSymbolList.addAll(t.pSymbolList);
         pExpression.pSymbolList.add(PSymbol.of(-2));
+
+        pExpression.pVariableSet.addAll(s.pVariableSet);
+        pExpression.pVariableSet.addAll(t.pVariableSet);
 
         pExpression.value = and_of(contain_of(s, t), contain_of(t, s)).getValue();
 
@@ -230,6 +258,7 @@ public class PExpression {
             pExpression.pSymbolList.add(PSymbol.of(-1));
             for (PExpression phi : xs) {
                 pExpression.pSymbolList.addAll(phi.pSymbolList);
+                pExpression.pVariableSet.addAll(phi.pVariableSet);
                 pExpression.pSymbolList.add(PSymbol.of(-5));
             }
             pExpression.pSymbolList.removeLast();
@@ -241,23 +270,8 @@ public class PExpression {
         }
     }
 
-    @SuppressWarnings("unused")
-    public int getSymbolTypeMax() {
-        int type = 0;
-        for (PSymbol symbol : pSymbolList) {
-            type = Math.max(type, symbol.type());
-        }
-        return type;
-    }
-
-    /**
-     * @deprecated The truth value of the expression after the processing mode replacement is too complex because we have
-     * not implemented a truth value-based computing system. We plan to rewrite the system based on reasoning rather than
-     * truth value assignment, so this function is deprecated.
-     */
-    @SuppressWarnings("unused")
-    public PExpression setSymbolToNewExpression(int symbolType, PExpression pExpression) {
-        return PExpression.var_of(PSymbol.of(0));
+    public Set<PSymbol> getVariableSet() {
+        return pVariableSet;
     }
 
     public Boolean getValue() {

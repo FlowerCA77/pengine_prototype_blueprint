@@ -3,9 +3,10 @@ import java.util.WeakHashMap;
 
 public class PSymbol {
     /**
-     * HashMap              ->      The simplest approach   <br>
-     * WeakHashMap          ->      With auto GC            <br>
-     * ConcurrentHashMap    ->      With thread safety      <br>
+     * HashMap              ->      The simplest approach                                                               <br>
+     * LinkedHashMap        ->      Maximize space use, but easily produce unreachable garbage                          <br>
+     * WeakHashMap          ->      With auto GC                                                                        <br>
+     * ConcurrentHashMap    ->      With thread safety                                                                  <br>
      */
     private static final Map<Integer, PSymbol> REF_CATCH = new WeakHashMap<>();
     private final int type;
@@ -39,7 +40,7 @@ public class PSymbol {
         this.value = value;
     }
 
-    public int type() {
+    public int getType() {
         return type;
     }
 
@@ -47,19 +48,19 @@ public class PSymbol {
     public String toString() {
         if (type >= 0) {
             return "A" + type;
-        } else {
-            return switch (type) {
-                case -1 -> "(";
-                case -2 -> ")";
-                case -3 -> "¬";
-                case -4 -> "→";
-                case -5 -> "↔";
-                case -6 -> "∧";
-                case -7 -> "∨";
-                case -8 -> "∀";
-                case -9 -> "∃";
-                default -> null;
-            };
         }
+        return switch (type) {
+            case -1 -> "(";
+            case -2 -> ")";
+            case -3 -> "¬";
+            case -4 -> " → ";
+            case -5 -> " ↔ ";
+            case -6 -> " ∧ ";
+            case -7 -> " ∨ ";
+            case -8 -> "∀";  // for first-order logic
+            case -9 -> "∃";  // for first-order logic
+            default -> throw new IllegalArgumentException("Invalid expression type: " + type);
+        };
     }
+
 }
