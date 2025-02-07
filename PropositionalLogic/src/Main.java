@@ -1,6 +1,8 @@
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Supplier;
 
-@SuppressWarnings("CommentedOutCode")
 public class Main {
     public static void main(String[] args) {
         /* A = ((¬A0)->A1) */
@@ -10,8 +12,7 @@ public class Main {
                         PExpression.var_of(PSymbol.of(1))
                 )
         );
-
-        printTruthTable(A, "A", 2);
+        printTruthTable(A, "A");
 
         /* B = (A0 ∧ A1 ∧ A2) */
         Supplier<PExpression> B = () -> (
@@ -21,8 +22,7 @@ public class Main {
                         PExpression.var_of(PSymbol.of(2))
                 )
         );
-
-        printTruthTable(B, "B", 3);
+        printTruthTable(B, "B");
 
         /* C = ((A0 ∧ (A0 → A1)) → A1) */
         Supplier<PExpression> C = () -> (
@@ -36,8 +36,7 @@ public class Main {
                         ), PExpression.var_of(PSymbol.of(1))
                 )
         );
-
-        printTruthTable(C, "C", 2);
+        printTruthTable(C, "C");
 
         /* D = (A0 ∨ A1 ∨ A2) */
         Supplier<PExpression> D = () -> (
@@ -47,8 +46,7 @@ public class Main {
                         PExpression.var_of(PSymbol.of(2))
                 )
         );
-
-        printTruthTable(D, "D", 3);
+        printTruthTable(D, "D");
 
         /* X = ((¬A0) ∧ A1) ∨ (A0 ∧ (¬A1)) */
         Supplier<PExpression> X = () -> (
@@ -62,12 +60,10 @@ public class Main {
                         )
                 )
         );
-
-        printTruthTable(X, "X", 2);
+        printTruthTable(X, "X");
 
         /* E = A0 ↔ A0 ↔ (A0 ∨ A0) ↔ (A0 ∧ A0) ↔ (A0 ∨ A0 ∨ A0) ↔ (A0 ∧ A0 ∧
         A0) */
-
         Supplier<PExpression> E = () -> (
                 PExpression.equiv_of(
                         PExpression.var_of(PSymbol.of(0)),
@@ -86,47 +82,62 @@ public class Main {
                         )
                 )
         );
+        printTruthTable(E, "E");
 
-        printTruthTable(E, "E", 1);
+        /* pattern f(s,t): s -> t */
+        Supplier<PExpression> fst = getFst();
+        printTruthTable(fst, "fst");
 
-        /* Axiom 1: s -> s */
-//        Supplier<PExpression> A1 = () -> (
-//                PExpression.contain_of(PExpression.var_of(PSymbol.of(0)), PExpression.var_of(PSymbol.of(0)))
-//        );
-//        Supplier<PExpression> P2 = () -> (
-//                Axiom.makeAxiom(A1.get(), B.get())
-//        );
-//        printTruthTable(P2, "P2", P2.get().getSymbolTypeMax());
+        /*  */
     }
 
-    public static void checkTruthTable(Supplier<PExpression> pExp, String pName, int n) {
-        Boolean[][] truthTable = (new TruthAssigner()).truthTraverser(n);
+    private static Supplier<PExpression> getFst() {
+        // antecedent -> consequent
+        Pattern f = new Pattern(expressions -> {
+            if (expressions.size() != 2) {
+                throw new IllegalArgumentException("Implication pattern requires exactly 2 arguments.");
+            }
+            Supplier<PExpression> antecedent = expressions.get(0);
+            Supplier<PExpression> consequent = expressions.get(1);
+            return () -> PExpression.contain_of(antecedent.get(), consequent.get());
+        });
+        // antecedent : A0
+        Supplier<PExpression> s = () -> PExpression.var_of(PSymbol.of(0));
+        // consequent : A0 -> A1
+        Supplier<PExpression> t = () -> PExpression.contain_of(
+                PExpression.var_of(PSymbol.of(0)),
+                PExpression.var_of(PSymbol.of(1))
+        );
+        // (A0) -> (A0 -> A1)
+        return f.substitute(s, t);
+    }
+
+    public static void printTruthTable(Supplier<PExpression> pExp, String pName) {
+        PExpression pExpGet = pExp.get();
+        System.out.println("> " + pName + " : " + pExpGet);
+        List<PSymbol> variableList = new ArrayList<>(pExpGet.getVariableSet());
+        variableList.sort(Comparator.comparingInt(PSymbol::getType));
+        System.out.println("Variable List: " + variableList);
+        Boolean[][] truthTable = (new TruthAssigner()).truthTraverser(variableList.size());
         for (Boolean[] truth : truthTable) {
-            try {
-                for (int i = 0; i < n; i++) {
-                    PSymbol.of(i).setValue(truth[i]);
-                }
-            } catch (ArrayIndexOutOfBoundsException e) {
-                System.err.println(e.getMessage());
-            }
             StringBuilder varValStr = new StringBuilder();
-            for (int k = 0; k < n; k++) {
-                varValStr.append(PSymbol.of(k)).append(" : ").append(PSymbol.of(k).getValue()).append("\n");
+            for (PSymbol pSymbol : variableList) {
+                int pIdx = variableList.indexOf(pSymbol);
+                try {
+                    pSymbol.setValue(truth[pIdx]);
+                    varValStr.append(pSymbol).append(" : ").append(pSymbol.getValue()).append("\n");
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
             }
+            pExpGet = pExp.get();
             System.out.println(">>>>> Truth Table =====\n" +
                                varValStr +
                                pName +
                                " : " +
-                               pExp.get().getValue() +
+                               pExpGet.getValue() +
                                "\n" +
-                               "===== Truth Table <<<<<\n");
+                               "===== Truth Table <<<<<");
         }
     }
-
-    public static void printTruthTable(Supplier<PExpression> pExp, String pName, int n) {
-        System.out.println("> " + pName + " : " + pExp.get());
-        System.out.println();
-        checkTruthTable(pExp, pName, n);
-    }
 }
-
