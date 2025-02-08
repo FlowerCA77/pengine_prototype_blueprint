@@ -1,5 +1,8 @@
 import java.util.*;
 
+/**
+ * @author Chen Ao
+ */
 public class PExpression {
     private final List<PSymbol> pSymbolList;
     private final Set<PSymbol> pVariableSet;

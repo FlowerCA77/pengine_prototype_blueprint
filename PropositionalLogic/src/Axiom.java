@@ -1,9 +1,12 @@
 import java.util.function.Supplier;
 
+/**
+ * @author Chen Ao
+ */
 @SuppressWarnings({"NonAsciiCharacters", "unused"})
 public class Axiom {
-    // A1 : φ -> (ψ -> φ)
-    public Pattern A1 = new Pattern(expressions -> {
+    // A1 : φ → (ψ → φ)
+    public static Pattern A1 = new Pattern(expressions -> {
         if (expressions.size() != 2) {
             throw new IllegalArgumentException("Implication pattern requires exactly 2 arguments.");
         }
@@ -12,8 +15,8 @@ public class Axiom {
         return () -> PExpression.contain_of(φ.get(), PExpression.contain_of(ψ.get(), φ.get()));
     });
 
-    // A2 : (φ -> (ψ -> χ)) -> ((φ -> ψ) -> (φ -> χ))
-    public Pattern A2 = new Pattern(expressions -> {
+    // A2 : (φ → (ψ → χ)) → ((φ → ψ) → (φ → χ))
+    public static Pattern A2 = new Pattern(expressions -> {
         if (expressions.size() != 3) {
             throw new IllegalArgumentException("Implication pattern requires exactly 2 arguments.");
         }
@@ -29,8 +32,8 @@ public class Axiom {
         );
     });
 
-    // A3 : (¬φ -> ¬ψ) -> (ψ -> φ)
-    public Pattern A3 = new Pattern(expressions -> {
+    // A3 : (¬φ → ¬ψ) → (ψ → φ)
+    public static Pattern A3 = new Pattern(expressions -> {
         if (expressions.size() != 2) {
             throw new IllegalArgumentException("Implication pattern requires exactly 2 arguments.");
         }

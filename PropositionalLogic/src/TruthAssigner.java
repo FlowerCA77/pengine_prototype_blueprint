@@ -1,3 +1,6 @@
+/**
+ * @author Chen Ao
+ */
 public class TruthAssigner {
     public Boolean[][] truthTraverser(int n) {
         if (n < 1) {

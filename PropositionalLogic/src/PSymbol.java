@@ -1,6 +1,9 @@
 import java.util.Map;
 import java.util.WeakHashMap;
 
+/**
+ * @author Chen Ao
+ */
 public class PSymbol {
     /**
      * HashMap              ->      The simplest approach                                                               <br>

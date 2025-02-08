@@ -3,6 +3,9 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * @author Chen Ao
+ */
 public class Pattern {
     private final Function<List<Supplier<PExpression>>, Supplier<PExpression>> patternFunction;
 
