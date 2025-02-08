@@ -47,6 +47,7 @@ public class PExpression {
     }
 
     @SuppressWarnings("unused")
+    @Deprecated
     public static PExpression var_of(int type) {
         if (type < 0) {
             throw new IllegalArgumentException("not a propositional variable");

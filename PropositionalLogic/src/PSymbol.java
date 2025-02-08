@@ -15,6 +15,13 @@ public class PSymbol {
     private final int type;
     private Boolean value;
 
+    public static void initSymbolTable() {
+        System.out.println("Initialising symbol reference cache ...");
+        for (PSymbol symbol : REF_CATCH.values()) {
+            symbol.setValue(null);
+        }
+    }
+
     private PSymbol(int type) {
         this.type = type;
     }
