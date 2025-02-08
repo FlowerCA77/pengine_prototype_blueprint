@@ -1,5 +1,8 @@
 import java.util.*;
 
+/**
+ * @author Chen Ao
+ */
 public class PExpression {
     private final List<PSymbol> pSymbolList;
     private final Set<PSymbol> pVariableSet;
@@ -44,6 +47,7 @@ public class PExpression {
     }
 
     @SuppressWarnings("unused")
+    @Deprecated
     public static PExpression var_of(int type) {
         if (type < 0) {
             throw new IllegalArgumentException("not a propositional variable");

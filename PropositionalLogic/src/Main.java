@@ -3,9 +3,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * @author Chen Ao
+ */
 public class Main {
     public static void main(String[] args) {
-        /* A = ((¬A0)->A1) */
+        PSymbol.initSymbolTable();
+        /* A = ((¬A0)→A1) */
         Supplier<PExpression> A = () -> (
                 PExpression.contain_of(
                         PExpression.not_of(PExpression.var_of(PSymbol.of(0))),
@@ -13,7 +17,7 @@ public class Main {
                 )
         );
         printTruthTable(A, "A");
-
+        
         /* B = (A0 ∧ A1 ∧ A2) */
         Supplier<PExpression> B = () -> (
                 PExpression.and_of(
@@ -23,7 +27,7 @@ public class Main {
                 )
         );
         printTruthTable(B, "B");
-
+        
         /* C = ((A0 ∧ (A0 → A1)) → A1) */
         Supplier<PExpression> C = () -> (
                 PExpression.contain_of(
@@ -37,7 +41,7 @@ public class Main {
                 )
         );
         printTruthTable(C, "C");
-
+        
         /* D = (A0 ∨ A1 ∨ A2) */
         Supplier<PExpression> D = () -> (
                 PExpression.or_of(
@@ -47,7 +51,7 @@ public class Main {
                 )
         );
         printTruthTable(D, "D");
-
+        
         /* X = ((¬A0) ∧ A1) ∨ (A0 ∧ (¬A1)) */
         Supplier<PExpression> X = () -> (
                 PExpression.or_of(
@@ -61,7 +65,7 @@ public class Main {
                 )
         );
         printTruthTable(X, "X");
-
+        
         /* E = A0 ↔ A0 ↔ (A0 ∨ A0) ↔ (A0 ∧ A0) ↔ (A0 ∨ A0 ∨ A0) ↔ (A0 ∧ A0 ∧
         A0) */
         Supplier<PExpression> E = () -> (
@@ -83,16 +87,24 @@ public class Main {
                 )
         );
         printTruthTable(E, "E");
-
-        /* pattern f(s,t): s -> t */
+        
+        /* pattern f(s,t): s → t */
         Supplier<PExpression> fst = getFst();
         printTruthTable(fst, "fst");
-
-        /*  */
-    }
+        
+        /* S = AxiomA1.apply(A, B) */
+        Supplier<PExpression> S = Axiom.A1.substitute(A, B);
+        printTruthTable(S, "S");
+        
+        // check axiom A1
+        System.out.println();
+        Axiom axiom = new Axiom();
+        axiom.proofHilbert();
+            }
 
     private static Supplier<PExpression> getFst() {
-        // antecedent -> consequent
+        // f(s, t): s → t
+        // fst : antecedent → consequent
         Pattern f = new Pattern(expressions -> {
             if (expressions.size() != 2) {
                 throw new IllegalArgumentException("Implication pattern requires exactly 2 arguments.");
@@ -103,12 +115,12 @@ public class Main {
         });
         // antecedent : A0
         Supplier<PExpression> s = () -> PExpression.var_of(PSymbol.of(0));
-        // consequent : A0 -> A1
+        // consequent : A0 → A1
         Supplier<PExpression> t = () -> PExpression.contain_of(
                 PExpression.var_of(PSymbol.of(0)),
                 PExpression.var_of(PSymbol.of(1))
         );
-        // (A0) -> (A0 -> A1)
+        // fst : (A0) → (A0 → A1)
         return f.substitute(s, t);
     }
 
@@ -121,6 +133,7 @@ public class Main {
         Boolean[][] truthTable = (new TruthAssigner()).truthTraverser(variableList.size());
         for (Boolean[] truth : truthTable) {
             StringBuilder varValStr = new StringBuilder();
+            PSymbol.initSymbolTable();
             for (PSymbol pSymbol : variableList) {
                 int pIdx = variableList.indexOf(pSymbol);
                 try {

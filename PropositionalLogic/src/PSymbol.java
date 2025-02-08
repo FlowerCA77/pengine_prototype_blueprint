@@ -1,6 +1,9 @@
 import java.util.Map;
 import java.util.WeakHashMap;
 
+/**
+ * @author Chen Ao
+ */
 public class PSymbol {
     /**
      * HashMap              ->      The simplest approach                                                               <br>
@@ -11,6 +14,13 @@ public class PSymbol {
     private static final Map<Integer, PSymbol> REF_CATCH = new WeakHashMap<>();
     private final int type;
     private Boolean value;
+
+    public static void initSymbolTable() {
+        System.out.println("Initialising symbol reference cache ...");
+        for (PSymbol symbol : REF_CATCH.values()) {
+            symbol.setValue(null);
+        }
+    }
 
     private PSymbol(int type) {
         this.type = type;
