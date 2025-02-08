@@ -1,8 +1,11 @@
 import java.util.*;
 
 /**
+ * Reconstructing...                                                <br>
+ * Status: in progress                                              <br>
  * @author Chen Ao
  */
+@Deprecated
 public class PExpression {
     private final List<PSymbol> pSymbolList;
     private final Set<PSymbol> pVariableSet;
